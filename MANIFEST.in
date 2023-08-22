@@ -1,0 +1,18 @@
+include MANIFEST.in
+include requirements.txt
+include *.json
+include *.md
+include *.py
+include *.txt
+recursive-include garments_reports *.css
+recursive-include garments_reports *.csv
+recursive-include garments_reports *.html
+recursive-include garments_reports *.ico
+recursive-include garments_reports *.js
+recursive-include garments_reports *.json
+recursive-include garments_reports *.md
+recursive-include garments_reports *.png
+recursive-include garments_reports *.py
+recursive-include garments_reports *.svg
+recursive-include garments_reports *.txt
+recursive-exclude garments_reports *.pyc
