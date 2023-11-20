@@ -30,13 +30,13 @@ def get_columns():
             "label": _("Bags"),
             "fieldname": "bags",
             "fieldtype": "Data",
-            "width": 120
+            "width": 180
         },
         {
             "label": _("Amount"),
             "fieldname": "amount",
-            "fieldtype": "Data",
-            "width": 150
+            "fieldtype": "Currency",
+            "width": 180
         }
     ]
     return columns
@@ -46,7 +46,7 @@ def get_conditions(filters, doctype):
     conditions = []
 
     if filters.get("name"):
-        conditions.append(f"{doctype}.master_towel_costing = %(name)s")
+        conditions.append(f"`{doctype}`.master_towel_costing = %(name)s")
     return " AND ".join(conditions)
 
 
@@ -55,14 +55,14 @@ def get_data(filters):
     srsi_query = """
             SELECT 
                 srsi.rm_item_code,
-                SUM(srsi.consumed_qty) AS consumed_qty,
-                SUM(srsi.consumed_qty/100) AS bags,
+                ROUND(SUM(srsi.consumed_qty),2) AS consumed_qty,
+                ROUND(SUM(srsi.consumed_qty/100)) AS bags,
                 SUM(srsi.amount) AS amount
             FROM 
                 `tabSubcontracting Receipt Supplied Item` AS srsi, `tabSubcontracting Receipt` AS sr, `tabItem` AS item
             WHERE
-                srsi.rm_item_code = item.item_code AND item.item_group = 'Yarn' AND sr.docstatus = 1 AND sr.name = srsi.parent
-                AND {conditions}
+                srsi.rm_item_code = item.item_code AND item.item_group = 'Yarn' AND sr.docstatus = 1 AND sr.name = srsi.parent AND
+                {conditions}
             GROUP BY
                 srsi.rm_item_code
             """.format(conditions=get_conditions(filters, "sr"))
