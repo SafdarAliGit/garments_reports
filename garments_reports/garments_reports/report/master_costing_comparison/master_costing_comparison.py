@@ -108,7 +108,7 @@ def get_data(filters):
         total_cost += row["amount"]
     mtc_result.append({
         "rm_item_code": _("<b>Total</b>"),
-        "consumed_qty": f"<b>{total_yarn_required_in_lbs}</b>",
+        "consumed_qty": f"<b>{int(total_yarn_required_in_lbs)}</b>",
         "bags": f"<b>{total_bags_reqd}</b>",
         "amount": total_cost,
     })
@@ -130,8 +130,8 @@ def get_data(filters):
         total_amount += row["amount"]
     srsi_result.append({
         "rm_item_code": _("<b>Total</b>"),
-        "consumed_qty": f"<b>{total_consumed_qty}</b>",
-        "bags": f"<b>{total_bags}</b>",
+        "consumed_qty": f"<b>{int(total_consumed_qty)}</b>",
+        "bags": f"<b>{total_bags }</b>",
         "amount": total_amount,
     })
     srsi_result = heading2 + srsi_result
@@ -139,7 +139,7 @@ def get_data(filters):
     srsi_result.append(
         {
             "rm_item_code": _("<b>Difference</b>"),
-            "consumed_qty": f"<b>{total_yarn_required_in_lbs - total_consumed_qty}</b>",
+            "consumed_qty": f"<b>{int(total_yarn_required_in_lbs - total_consumed_qty)}</b>",
             "bags": f"<b>{total_bags_reqd - total_bags}</b>",
             "amount": total_cost - total_amount,
         }
