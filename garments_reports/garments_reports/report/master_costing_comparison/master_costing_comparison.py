@@ -56,22 +56,7 @@ def get_conditions(filters, doctype):
 
 def get_data(filters):
     data = []
-    srsi_query = """
-            SELECT 
-                srsi.rm_item_code,
-                ROUND(SUM(srsi.consumed_qty),2) AS consumed_qty,
-                ROUND(SUM(srsi.consumed_qty/100)) AS bags,
-                SUM(srsi.amount) AS amount
-            FROM 
-                `tabSubcontracting Receipt Supplied Item` AS srsi, `tabSubcontracting Receipt` AS sr, `tabItem` AS item
-            WHERE
-                srsi.rm_item_code = item.item_code AND item.item_group = 'Yarn' AND sr.docstatus = 1 AND sr.name = srsi.parent AND
-                {conditions}
-            GROUP BY
-                srsi.rm_item_code
-            """.format(conditions=get_conditions(filters, "sr"))
 
-    srsi_result = frappe.db.sql(srsi_query, filters, as_dict=1)
 
     mtc_query = """
             SELECT 
@@ -90,24 +75,33 @@ def get_data(filters):
 
     mtc_result = frappe.db.sql(mtc_query, filters, as_dict=1)
 
-    # sum for first query
-    total_consumed_qty = 0
-    total_bags = 0
-    total_amount = 0
-    for row in srsi_result:
-        total_consumed_qty += row["consumed_qty"]
-        total_bags += row["bags"]
-        total_amount += row["amount"]
-    srsi_result.append({
-        "rm_item_code": _("<b>Total</b>"),
-        "consumed_qty": f"<b>{total_consumed_qty}</b>",
-        "bags": f"<b>{total_bags}</b>",
-        "amount": total_amount,
-    })
+    srsi_query = """
+                SELECT 
+                    srsi.rm_item_code,
+                    ROUND(SUM(srsi.consumed_qty),2) AS consumed_qty,
+                    ROUND(SUM(srsi.consumed_qty/100)) AS bags,
+                    SUM(srsi.amount) AS amount
+                FROM 
+                    `tabSubcontracting Receipt Supplied Item` AS srsi, `tabSubcontracting Receipt` AS sr, `tabItem` AS item
+                WHERE
+                    srsi.rm_item_code = item.item_code AND item.item_group = 'Yarn' AND sr.docstatus = 1 AND sr.name = srsi.parent AND
+                    {conditions}
+                GROUP BY
+                    srsi.rm_item_code
+                """.format(conditions=get_conditions(filters, "sr"))
+
+    srsi_result = frappe.db.sql(srsi_query, filters, as_dict=1)
     # sum for first query
     total_yarn_required_in_lbs = 0
     total_bags_reqd = 0
     total_cost = 0
+    heading1=[{
+        "rm_item_code": _("<b style='font-size: 12px;'>Master Costing Yarn Projection</b>"),
+        "consumed_qty": _("------------"),
+        "bags": _("------------"),
+        "amount": _("------------"),
+    }]
+
     for row in mtc_result:
         total_yarn_required_in_lbs += row["consumed_qty"]
         total_bags_reqd += row["bags"]
@@ -118,7 +112,39 @@ def get_data(filters):
         "bags": f"<b>{total_bags_reqd}</b>",
         "amount": total_cost,
     })
+    mtc_result = heading1 + mtc_result
 
-    data.extend(srsi_result)
+    # sum for second query
+    total_consumed_qty = 0
+    total_bags = 0
+    total_amount = 0
+    heading2=[{
+        "rm_item_code": _("<b style='font-size: 12px;'>Actual Yarn Consumption</b>"),
+        "consumed_qty": _("------------"),
+        "bags": _("------------"),
+        "amount": _("------------"),
+    }]
+    for row in srsi_result:
+        total_consumed_qty += row["consumed_qty"]
+        total_bags += row["bags"]
+        total_amount += row["amount"]
+    srsi_result.append({
+        "rm_item_code": _("<b>Total</b>"),
+        "consumed_qty": f"<b>{total_consumed_qty}</b>",
+        "bags": f"<b>{total_bags}</b>",
+        "amount": total_amount,
+    })
+    srsi_result = heading2 + srsi_result
+# diff of sums
+    srsi_result.append(
+        {
+            "rm_item_code": _("<b>Difference</b>"),
+            "consumed_qty": f"<b>{total_yarn_required_in_lbs - total_consumed_qty}</b>",
+            "bags": f"<b>{total_bags_reqd - total_bags}</b>",
+            "amount": total_cost - total_amount,
+        }
+    )
     data.extend(mtc_result)
+    data.extend(srsi_result)
+
     return data
