@@ -36,7 +36,7 @@ def get_columns():
         {
             "label": _("Amount"),
             "fieldname": "amount",
-            "fieldtype": "Currency",
+            "fieldtype": "Data",
             "width": 180
         }
     ]
@@ -51,6 +51,9 @@ def get_conditions(filters, doctype):
     elif doctype == 'mtc':
         if filters.get("name"):
             conditions.append(f"`{doctype}`.name = %(name)s")
+    elif doctype == 'glentry':
+        if filters.get("name"):
+            conditions.append(f"`{doctype}`.master_towel_costing = %(name)s")
     return " AND ".join(conditions)
 
 
@@ -91,15 +94,32 @@ def get_data(filters):
                 """.format(conditions=get_conditions(filters, "sr"))
 
     srsi_result = frappe.db.sql(srsi_query, filters, as_dict=1)
+
+    glentry_query = """
+                SELECT 
+                    glentry.account AS rm_item_code,
+                    glentry.posting_date AS consumed_qty,
+                    "------------" AS bags,
+                    SUM(glentry.debit_in_account_currency) AS amount
+                FROM 
+                    `tabGL Entry` AS glentry
+                WHERE
+                    glentry.debit_in_account_currency >0 AND  glentry.is_cancelled = 0 AND glentry.docstatus = 1 AND
+                    {conditions}
+                GROUP BY
+                    glentry.posting_date, glentry.account 
+                """.format(conditions=get_conditions(filters, "glentry"))
+
+    glentry_result = frappe.db.sql(glentry_query, filters, as_dict=1)
     # sum for first query
     total_yarn_required_in_lbs = 0
     total_bags_reqd = 0
     total_cost = 0
     heading1=[{
-        "rm_item_code": _("<b style='font-size: 12px;'>Master Costing Yarn Projection</b>"),
+        "rm_item_code": _("<b style='font-size: 12px;'><u>Master Costing Yarn Projection</u></b>"),
         "consumed_qty": _("------------"),
         "bags": _("------------"),
-        "amount": _("------------"),
+        "amount": None,
     }]
 
     for row in mtc_result:
@@ -119,10 +139,10 @@ def get_data(filters):
     total_bags = 0
     total_amount = 0
     heading2=[{
-        "rm_item_code": _("<b style='font-size: 12px;'>Actual Yarn Consumption</b>"),
+        "rm_item_code": _("<b style='font-size: 12px;'><u>Actual Yarn Consumption</u></b>"),
         "consumed_qty": _("------------"),
         "bags": _("------------"),
-        "amount": _("------------"),
+        "amount": None,
     }]
     for row in srsi_result:
         total_consumed_qty += row["consumed_qty"]
@@ -135,6 +155,31 @@ def get_data(filters):
         "amount": total_amount,
     })
     srsi_result = heading2 + srsi_result
+
+    # sum for third query
+    total_gle_amount = 0
+    heading3 = [{
+        "rm_item_code": _("<b style='font-size: 12px;'><u>Payment Entries</u></b>"),
+        "consumed_qty": _("------------"),
+        "bags": _("------------"),
+        "amount":None,
+        },
+        {
+            "rm_item_code": _("<b style='font-size: 12px;'>Debit Account</b>"),
+            "consumed_qty": _("<b style='font-size: 12px;'>Posting Date</b>"),
+            "bags": _("------------"),
+            "amount":_("<b style='font-size: 12px;'>Debit Amount</b>"),
+        }
+    ]
+    for row in glentry_result:
+        total_gle_amount += row["amount"]
+    glentry_result.append({
+        "rm_item_code": _("<b>Total</b>"),
+        "consumed_qty": _("------------"),
+        "bags": _("------------"),
+        "amount": total_gle_amount,
+    })
+    glentry_result = heading3 + glentry_result
 # diff of sums
     srsi_result.append(
         {
@@ -144,7 +189,9 @@ def get_data(filters):
             "amount": total_cost - total_amount,
         }
     )
+    # sum for third query
     data.extend(mtc_result)
     data.extend(srsi_result)
+    data.extend(glentry_result)
 
     return data

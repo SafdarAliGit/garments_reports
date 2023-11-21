@@ -66,8 +66,16 @@
         <td style="text-align: left;">{%= data[i].rm_item_code %}</td>
         <td style="text-align: right;">{%= data[i].consumed_qty %}</td>
         <td style="text-align: right;">{%= data[i].bags %}</td>
+        {% if (typeof data[i].amount === 'number' ) { %}
         <td style="text-align: right;">{%= format_currency(data[i].amount, data[i].currency) %}</td>
+        {% } else if (typeof data[i].amount === 'string') { %}
+         <td style="text-align: right;">{%= data[i].amount %}</td>
+       {% } else { %}
+        <td style="text-align: right;">------------</td>
+        {% } %}
+
     </tr>
+
     {% } %}
     </tbody>
 
