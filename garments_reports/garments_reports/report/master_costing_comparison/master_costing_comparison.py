@@ -104,7 +104,7 @@ def get_data(filters):
                 FROM 
                     `tabGL Entry` AS glentry
                 WHERE
-                    glentry.debit_in_account_currency >0 AND  glentry.is_cancelled = 0 AND glentry.docstatus = 1 AND
+                    glentry.debit_in_account_currency >0 AND  glentry.is_cancelled = 0 AND glentry.docstatus = 1 AND voucher_type = 'Subcontracting Receipt' AND
                     {conditions}
                 GROUP BY
                     glentry.posting_date, glentry.account 
