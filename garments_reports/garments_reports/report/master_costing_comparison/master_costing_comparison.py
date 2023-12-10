@@ -57,6 +57,9 @@ def get_conditions(filters, doctype):
     elif doctype == 'pii':
         if filters.get("name"):
             conditions.append(f"`{doctype}`.master_towel_costing = %(name)s")
+    elif doctype == 'mtc_other':
+        if filters.get("name"):
+            conditions.append(f"`{doctype}`.name = %(name)s")
     return " AND ".join(conditions)
 
 
@@ -130,6 +133,21 @@ def get_data(filters):
                     """.format(conditions=get_conditions(filters, "pii"))
 
     purchase_items_result = frappe.db.sql(purchase_items, filters, as_dict=1)
+    mtc_other_query = """
+            SELECT 
+                mtc_other.weaving,
+                mtc_other.dying,
+                mtc_other.stitching,
+                mtc_other.accessories,
+                mtc_other.clearing  
+            FROM 
+                `tabMaster Towel Costing` AS mtc_other
+            WHERE
+                 mtc_other.docstatus < 1  AND
+                {conditions}
+            """.format(conditions=get_conditions(filters, "mtc_other"))
+
+    mtc_other_result = frappe.db.sql(mtc_other_query, filters, as_dict=1)
     # sum for first query
     total_yarn_required_in_lbs = 0
     total_bags_reqd = 0
@@ -233,11 +251,58 @@ def get_data(filters):
         "amount": total_amount,
     })
     purchase_items_result = heading4 + purchase_items_result
+    # fifth query
+    total_other_amount = mtc_other_result[0]['weaving'] + mtc_other_result[0]['dying'] + mtc_other_result[0]['stitching'] + \
+                   mtc_other_result[0]['accessories'] + mtc_other_result[0]['clearing']
+    heading5 = [{
+        "rm_item_code": _("<b style='font-size: 12px;'><u>Master Costing Other Projection</u></b>"),
+        "consumed_qty": _("------------"),
+        "bags": _("------------"),
+        "amount": None,
+    },
+        {
+            "rm_item_code": _("<b style='font-size: 12px;'>Weaving</b>"),
+            "consumed_qty": _("------------"),
+            "bags": _("------------"),
+            "amount": _(f"<b style='font-size: 12px;'>{mtc_other_result[0]['weaving']}</b>"),
+        },
+        {
+            "rm_item_code": _("<b style='font-size: 12px;'>Dying</b>"),
+            "consumed_qty": _("------------"),
+            "bags": _("------------"),
+            "amount": _(f"<b style='font-size: 12px;'>{mtc_other_result[0]['dying']}</b>"),
+        },
+        {
+            "rm_item_code": _("<b style='font-size: 12px;'>Stitching</b>"),
+            "consumed_qty": _("------------"),
+            "bags": _("------------"),
+            "amount": _(f"<b style='font-size: 12px;'>{mtc_other_result[0]['stitching']}</b>"),
+        },
+        {
+            "rm_item_code": _("<b style='font-size: 12px;'>Accessories</b>"),
+            "consumed_qty": _("------------"),
+            "bags": _("------------"),
+            "amount": _(f"<b style='font-size: 12px;'>{mtc_other_result[0]['accessories']}</b>"),
+        },
+        {
+            "rm_item_code": _("<b style='font-size: 12px;'>Freight + Clearing</b>"),
+            "consumed_qty": _("------------"),
+            "bags": _("------------"),
+            "amount": _(f"<b style='font-size: 12px;'>{mtc_other_result[0]['clearing']}</b>"),
+        },
+        {
+            "rm_item_code": _("<b>Total</b>"),
+            "consumed_qty": _("------------"),
+            "bags": _("------------"),
+            "amount": _(f"<b style='font-size: 12px;'>{total_other_amount}</b>"),
+        }
+    ]
+    mtc_other_result = heading5
 
     data.extend(mtc_result)
     data.extend(srsi_result)
     data.extend(purchase_items_result)
     data.extend(glentry_result)
-
+    data.extend(mtc_other_result)
 
     return data
