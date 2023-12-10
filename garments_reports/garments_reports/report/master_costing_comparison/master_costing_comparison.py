@@ -72,7 +72,7 @@ def get_data(filters):
                 mtcrm.raw_material AS rm_item_code,
                 ROUND(SUM(mtcrm.yarn_required_in_lbs),2) AS consumed_qty,
                 ROUND(SUM(mtcrm.bags_reqd)) AS bags,
-                SUM(mtcrm.cost) AS amount
+                ROUND(SUM(mtcrm.cost),2) AS amount
             FROM 
                 `tabMaster Towel Costing` AS mtc, `tabMaster Towel Costing Raw Material` AS mtcrm, `tabItem` AS item
             WHERE
@@ -89,7 +89,7 @@ def get_data(filters):
                     srsi.rm_item_code,
                     ROUND(SUM(srsi.consumed_qty),2) AS consumed_qty,
                     ROUND(SUM(srsi.consumed_qty/100)) AS bags,
-                    SUM(srsi.amount) AS amount
+                    ROUND(SUM(srsi.amount),2) AS amount
                 FROM 
                     `tabSubcontracting Receipt Supplied Item` AS srsi, `tabSubcontracting Receipt` AS sr, `tabItem` AS item
                 WHERE
@@ -106,7 +106,7 @@ def get_data(filters):
                     glentry.account AS rm_item_code,
                     glentry.posting_date AS consumed_qty,
                     "------------" AS bags,
-                    SUM(glentry.debit_in_account_currency) AS amount
+                    ROUND(SUM(glentry.debit_in_account_currency),2) AS amount
                 FROM 
                     `tabGL Entry` AS glentry
                 WHERE
@@ -122,7 +122,7 @@ def get_data(filters):
                         pii.item_code AS rm_item_code,
                         pi.name AS consumed_qty,
                         pi.supplier AS bags,
-                        SUM(pii.amount) AS amount
+                        ROUND(SUM(pii.amount),2) AS amount
                     FROM 
                         `tabPurchase Invoice` AS pi, `tabPurchase Invoice Item` AS pii
                     WHERE
@@ -135,11 +135,11 @@ def get_data(filters):
     purchase_items_result = frappe.db.sql(purchase_items, filters, as_dict=1)
     mtc_other_query = """
             SELECT 
-                mtc_other.weaving,
-                mtc_other.dying,
-                mtc_other.stitching,
-                mtc_other.accessories,
-                mtc_other.clearing  
+                ROUND(mtc_other.weaving,2) AS weaving,
+                ROUND(mtc_other.dying,2) AS dying,
+                ROUND(mtc_other.stitching,2) AS stitching,
+                ROUND(mtc_other.accessories,2) AS accessories,
+                ROUND(mtc_other.clearing,2) AS clearing 
             FROM 
                 `tabMaster Towel Costing` AS mtc_other
             WHERE
@@ -167,7 +167,7 @@ def get_data(filters):
         "rm_item_code": _("<b>Total</b>"),
         "consumed_qty": f"<b>{int(total_yarn_required_in_lbs)}</b>",
         "bags": f"<b>{total_bags_reqd}</b>",
-        "amount": total_cost,
+        "amount": f"<b>{total_cost:.2f}</b>",
     })
     mtc_result = heading1 + mtc_result
 
@@ -189,7 +189,7 @@ def get_data(filters):
         "rm_item_code": _("<b>Total</b>"),
         "consumed_qty": f"<b>{int(total_consumed_qty)}</b>",
         "bags": f"<b>{total_bags }</b>",
-        "amount": total_amount,
+        "amount": f"<b>{total_amount:.2f}</b>"
     })
     srsi_result = heading2 + srsi_result
 
@@ -214,16 +214,16 @@ def get_data(filters):
         "rm_item_code": _("<b>Total</b>"),
         "consumed_qty": _("------------"),
         "bags": _("------------"),
-        "amount": total_gle_amount,
+        "amount": f"<b>{total_gle_amount:.2f}</b>"
     })
     glentry_result = heading3 + glentry_result
 # diff of sums
     srsi_result.append(
         {
             "rm_item_code": _("<b>Difference</b>"),
-            "consumed_qty": f"<b>{int(total_yarn_required_in_lbs - total_consumed_qty)}</b>",
+            "consumed_qty": f"<b>{int(total_yarn_required_in_lbs - total_consumed_qty):.2f}</b>",
             "bags": f"<b>{total_bags_reqd - total_bags}</b>",
-            "amount": total_cost - total_amount,
+            "amount": f"<b>{total_cost - total_amount:.2f}</b>"
         }
     )
     # sum for third query
@@ -248,7 +248,7 @@ def get_data(filters):
         "rm_item_code": _("<b>Total</b>"),
         "consumed_qty": _("------------"),
         "bags": _("------------"),
-        "amount": total_amount,
+        "amount": f"<b>{total_amount:.2f}</b>"
     })
     purchase_items_result = heading4 + purchase_items_result
     # fifth query
@@ -264,37 +264,37 @@ def get_data(filters):
             "rm_item_code": _("<b style='font-size: 12px;'>Weaving</b>"),
             "consumed_qty": _("------------"),
             "bags": _("------------"),
-            "amount": _(f"<b style='font-size: 12px;'>{mtc_other_result[0]['weaving']}</b>"),
+            "amount": _(f"<b style='font-size: 12px;'>{mtc_other_result[0]['weaving']:.2f}</b>"),
         },
         {
             "rm_item_code": _("<b style='font-size: 12px;'>Dying</b>"),
             "consumed_qty": _("------------"),
             "bags": _("------------"),
-            "amount": _(f"<b style='font-size: 12px;'>{mtc_other_result[0]['dying']}</b>"),
+            "amount": _(f"<b style='font-size: 12px;'>{mtc_other_result[0]['dying']:.2f}</b>"),
         },
         {
             "rm_item_code": _("<b style='font-size: 12px;'>Stitching</b>"),
             "consumed_qty": _("------------"),
             "bags": _("------------"),
-            "amount": _(f"<b style='font-size: 12px;'>{mtc_other_result[0]['stitching']}</b>"),
+            "amount": _(f"<b style='font-size: 12px;'>{mtc_other_result[0]['stitching']:.2f}</b>"),
         },
         {
             "rm_item_code": _("<b style='font-size: 12px;'>Accessories</b>"),
             "consumed_qty": _("------------"),
             "bags": _("------------"),
-            "amount": _(f"<b style='font-size: 12px;'>{mtc_other_result[0]['accessories']}</b>"),
+            "amount": _(f"<b style='font-size: 12px;'>{mtc_other_result[0]['accessories']:.2f}</b>"),
         },
         {
             "rm_item_code": _("<b style='font-size: 12px;'>Freight + Clearing</b>"),
             "consumed_qty": _("------------"),
             "bags": _("------------"),
-            "amount": _(f"<b style='font-size: 12px;'>{mtc_other_result[0]['clearing']}</b>"),
+            "amount": _(f"<b style='font-size: 12px;'>{mtc_other_result[0]['clearing']:.2f}</b>"),
         },
         {
             "rm_item_code": _("<b>Total</b>"),
             "consumed_qty": _("------------"),
             "bags": _("------------"),
-            "amount": _(f"<b style='font-size: 12px;'>{total_other_amount}</b>"),
+            "amount": _(f"<b style='font-size: 12px;'>{total_other_amount:.2f}</b>"),
         }
     ]
     mtc_other_result = heading5
