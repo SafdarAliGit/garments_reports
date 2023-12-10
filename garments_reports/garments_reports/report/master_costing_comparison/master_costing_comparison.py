@@ -54,6 +54,9 @@ def get_conditions(filters, doctype):
     elif doctype == 'glentry':
         if filters.get("name"):
             conditions.append(f"`{doctype}`.master_towel_costing = %(name)s")
+    elif doctype == 'pii':
+        if filters.get("name"):
+            conditions.append(f"`{doctype}`.master_towel_costing = %(name)s")
     return " AND ".join(conditions)
 
 
@@ -111,6 +114,22 @@ def get_data(filters):
                 """.format(conditions=get_conditions(filters, "glentry"))
 
     glentry_result = frappe.db.sql(glentry_query, filters, as_dict=1)
+    purchase_items = """
+                    SELECT 
+                        pii.item_code AS rm_item_code,
+                        pi.name AS consumed_qty,
+                        pi.supplier AS bags,
+                        SUM(pii.amount) AS amount
+                    FROM 
+                        `tabPurchase Invoice` AS pi, `tabPurchase Invoice Item` AS pii
+                    WHERE
+                        pii.parent = pi.name AND pi.docstatus = 1 AND pii.amount >0 AND
+                        {conditions}
+                    GROUP BY
+                        pii.item_code, pi.name
+                    """.format(conditions=get_conditions(filters, "pii"))
+
+    purchase_items_result = frappe.db.sql(purchase_items, filters, as_dict=1)
     # sum for first query
     total_yarn_required_in_lbs = 0
     total_bags_reqd = 0
@@ -190,8 +209,34 @@ def get_data(filters):
         }
     )
     # sum for third query
+    # sum for fourth query
+    total_amount = 0
+    heading4=[{
+        "rm_item_code": _("<b style='font-size: 12px;'><u>Purchase Items</u></b>"),
+        "consumed_qty": _("------------"),
+        "bags": _("------------"),
+        "amount": None,
+    },
+    {
+        "rm_item_code": _("<b style='font-size: 12px;'>Item Code</b>"),
+        "consumed_qty": _("<b style='font-size: 12px;'>Voucher No</b>"),
+        "bags": _("<b style='font-size: 12px;'>Supplier</b>"),
+        "amount": _("<b style='font-size: 12px;'>Amount</b>"),
+    }
+    ]
+    for row in purchase_items_result:
+        total_amount += row["amount"]
+    purchase_items_result.append({
+        "rm_item_code": _("<b>Total</b>"),
+        "consumed_qty": _("------------"),
+        "bags": _("------------"),
+        "amount": total_amount,
+    })
+    purchase_items_result = heading4 + purchase_items_result
+
     data.extend(mtc_result)
     data.extend(srsi_result)
     data.extend(glentry_result)
+    data.extend(purchase_items_result)
 
     return data
