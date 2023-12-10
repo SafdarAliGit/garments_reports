@@ -236,7 +236,8 @@ def get_data(filters):
 
     data.extend(mtc_result)
     data.extend(srsi_result)
-    data.extend(glentry_result)
     data.extend(purchase_items_result)
+    data.extend(glentry_result)
+
 
     return data
