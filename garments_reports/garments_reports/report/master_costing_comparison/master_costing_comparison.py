@@ -74,9 +74,9 @@ def get_data(filters):
                 ROUND(SUM(mtcrm.bags_reqd)) AS bags,
                 ROUND(SUM(mtcrm.cost),2) AS amount
             FROM 
-                `tabMaster Towel Costing` AS mtc, `tabMaster Towel Costing Raw Material` AS mtcrm, `tabItem` AS item, `tabItem Group` AS ig
+                `tabMaster Towel Costing` AS mtc, `tabMaster Towel Costing Raw Material` AS mtcrm, `tabItem` AS item
             WHERE
-                mtcrm.raw_material = item.item_code AND item.item_group = ig.name AND ig.parent_item_group = 'Yarn' AND mtc.docstatus < 1 AND mtc.name = mtcrm.parent AND
+                mtcrm.raw_material = item.item_code AND item.parent_item_group = 'Yarn' AND mtc.docstatus < 1 AND mtc.name = mtcrm.parent AND
                 {conditions}
             GROUP BY
                 mtcrm.raw_material
@@ -91,7 +91,7 @@ def get_data(filters):
                     ROUND(SUM(srsi.consumed_qty/100)) AS bags,
                     ROUND(SUM(srsi.amount),2) AS amount
                 FROM 
-                    `tabSubcontracting Receipt Supplied Item` AS srsi, `tabSubcontracting Receipt` AS sr, `tabItem` AS item, `tabItem Group` AS ig
+                    `tabSubcontracting Receipt Supplied Item` AS srsi, `tabSubcontracting Receipt` AS sr, `tabItem` AS item
                 WHERE
                     srsi.rm_item_code = item.item_code AND item.item_group = ig.name AND ig.parent_item_group = 'Yarn'  AND sr.docstatus = 1 AND sr.name = srsi.parent AND
                     {conditions}
