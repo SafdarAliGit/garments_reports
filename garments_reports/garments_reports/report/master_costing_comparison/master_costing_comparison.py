@@ -93,7 +93,7 @@ def get_data(filters):
                 FROM 
                     `tabSubcontracting Receipt Supplied Item` AS srsi, `tabSubcontracting Receipt` AS sr, `tabItem` AS item
                 WHERE
-                    srsi.rm_item_code = item.item_code AND item.item_group = 'Yarn' AND sr.docstatus = 1 AND sr.name = srsi.parent AND
+                    srsi.rm_item_code = item.item_code  AND sr.docstatus = 1 AND sr.name = srsi.parent AND
                     {conditions}
                 GROUP BY
                     srsi.rm_item_code
