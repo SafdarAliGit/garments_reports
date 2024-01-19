@@ -66,7 +66,7 @@ def get_conditions(filters, doctype):
 def get_data(filters):
     data = []
 
-
+    # AND item.item_group = 'Yarn'
     mtc_query = """
             SELECT 
                 mtcrm.raw_material AS rm_item_code,
@@ -76,7 +76,7 @@ def get_data(filters):
             FROM 
                 `tabMaster Towel Costing` AS mtc, `tabMaster Towel Costing Raw Material` AS mtcrm, `tabItem` AS item
             WHERE
-                mtcrm.raw_material = item.item_code AND item.parent_item_group = 'Yarn' OR item.item_group = 'Yarn' AND mtc.docstatus < 1 AND mtc.name = mtcrm.parent AND
+                mtcrm.raw_material = item.item_code  AND mtc.docstatus < 1 AND mtc.name = mtcrm.parent AND
                 {conditions}
             GROUP BY
                 mtcrm.raw_material
