@@ -76,7 +76,7 @@ def get_data(filters):
             FROM 
                 `tabMaster Towel Costing` AS mtc, `tabMaster Towel Costing Raw Material` AS mtcrm, `tabItem` AS item
             WHERE
-                mtcrm.raw_material = item.item_code AND item.item_group = ig.name AND ig.parent_item_group = 'Yarn' AND mtc.docstatus < 1 AND mtc.name = mtcrm.parent AND
+                mtcrm.raw_material = item.item_code AND item.parent_item_group = 'Yarn' AND mtc.docstatus < 1 AND mtc.name = mtcrm.parent AND
                 {conditions}
             GROUP BY
                 mtcrm.raw_material
@@ -93,7 +93,7 @@ def get_data(filters):
                 FROM 
                     `tabSubcontracting Receipt Supplied Item` AS srsi, `tabSubcontracting Receipt` AS sr, `tabItem` AS item
                 WHERE
-                    srsi.rm_item_code = item.item_code AND AND item.item_group = ig.name AND ig.parent_item_group = 'Yarn' AND sr.docstatus = 1 AND sr.name = srsi.parent AND
+                    srsi.rm_item_code = item.item_code AND item.parent_item_group = 'Yarn' AND sr.docstatus = 1 AND sr.name = srsi.parent AND
                     {conditions}
                 GROUP BY
                     srsi.rm_item_code
