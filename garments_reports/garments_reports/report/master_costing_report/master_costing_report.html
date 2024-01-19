@@ -1,0 +1,84 @@
+<style>
+    .print-format {
+        padding: 1mm;
+        font-size: 10.0pt !important;
+    }
+
+    .print-format td {
+        vertical-align: middle !important;
+    }
+
+/*table {*/
+/*    border-collapse: collapse;*/
+/*    width: 100%;*/
+/*    border: 1.5px solid #000000;*/
+/*   page-break-after: auto;*/
+/*  }*/
+
+  th, td {
+    /*text-align: left;*/
+    border: 1.5px solid #000000 !important; /* Set border width to 1.5px */
+  }
+
+  th {
+    background-color: transparent !important;
+    color: #000000 !important;
+      font-weight: bold !important;
+  }
+  tr:last-child {
+  font-weight: bold !important;
+}
+
+  /* @media print {*/
+  /*  table {*/
+  /*    page-break-inside: avoid; !* Avoid splitting the table across pages *!*/
+  /*  }*/
+  /*}*/
+</style>
+
+
+<div style="text-align:center;font-weight:bold;font-size:22px;background-color:#fff;border:none;">MJ TEXTILES</div>
+
+<div style="border-top: 1.5px dashed #232121;margin-top: 12px;margin-bottom: 12px;text-align: center;font-size: 20px;padding-top: 10px;">Master Costing Comparison</div>
+<div class="text-center" style="margin-top: 4px;margin-bottom: 8px;">
+    {% if (filters.name) { %}
+    <div class="text-center" style="display: inline-block;">
+        <b>Master Towel Costing:</b> {%= filters.name %}
+    </div>
+    {% } %}
+
+
+</div>
+
+<table class="table table-bordered table-condensed">
+    <thead>
+    <tr>
+        <th style="width: 40%; text-align: left;">{%= __("Item Code") %}</th>
+        <th style="width: 20%; text-align: right;">{%= __("LBS") %}</th>
+        <th style="width: 20%;text-align: right;">{%= __("Bags") %}</th>
+        <th style="width: 20%; text-align: right;">{%= __("Amount") %}</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    {% for(var i=0, l=data.length; i<l; i++) { %}
+    <tr>
+        <td style="text-align: left;">{%= data[i].rm_item_code %}</td>
+        <td style="text-align: right;">{%= data[i].consumed_qty %}</td>
+        <td style="text-align: right;">{%= data[i].bags %}</td>
+        {% if (typeof data[i].amount === 'number' ) { %}
+        <td style="text-align: right;">{%= format_currency(data[i].amount, data[i].currency) %}</td>
+        {% } else if (typeof data[i].amount === 'string') { %}
+         <td style="text-align: right;">{%= data[i].amount %}</td>
+       {% } else { %}
+        <td style="text-align: right;">------------</td>
+        {% } %}
+
+    </tr>
+
+    {% } %}
+    </tbody>
+
+</table>
+<p class="text-right text-muted">Printed On {%= frappe.datetime.str_to_user(frappe.datetime.get_datetime_as_string())
+    %}</p>
