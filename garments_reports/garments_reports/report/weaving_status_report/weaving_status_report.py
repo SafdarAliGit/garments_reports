@@ -221,22 +221,21 @@ def get_data(filters):
 
     sco_result = list(frappe.db.sql(sco_entry, filters, as_dict=1))
     # TO REMOVE DUPLICATES
-    keys_to_check = ['name','received_qty']
+    keys_to_check = ['name', 'received_qty']
     seen_values = {key: set() for key in keys_to_check}
 
     for entry in sco_result:
         key_values = tuple(entry[key] for key in keys_to_check)
 
         if any(value in seen_values[key] for key, value in zip(keys_to_check, key_values)):
-            for key in keys_to_check:
-                entry[key] = None
+            for i, key in enumerate(keys_to_check):
+                entry[key] = None if i > 0 else entry[key]
         else:
             for key, value in zip(keys_to_check, key_values):
                 seen_values[key].add(value)
 
     # END
     data.extend(sco_result)
-    print(data)
     return data
 # or key_master_towel_costing in seen_value_master_towel_costing
 #                 or key_item_code in seen_value_item_code or key_supplier in seen_value_supplier
