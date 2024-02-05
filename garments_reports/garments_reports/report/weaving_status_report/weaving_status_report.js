@@ -1,12 +1,12 @@
 frappe.query_reports["Weaving Status Report"] = {
     "filters": [
         {
-            "fieldname": "item_code",
-            "label": __("Service items"),
+            "fieldname": "subcontracting_for",
+            "label": __("Subcontracting For"),
             "fieldtype": "Link",
-            "options": "Item",
+            "options": "Subcontracting Order",
             "default": "Weaving Charges",
-            // "reqd": 1
+            "reqd": 1
 
         },
         {

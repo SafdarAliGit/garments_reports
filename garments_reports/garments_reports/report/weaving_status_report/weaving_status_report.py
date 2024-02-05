@@ -110,9 +110,8 @@ def get_columns():
 
 def get_conditions(filters, doctype):
     conditions = []
-    #
-    # if filters.get("item_code") and doctype != "sco":
-    #     conditions.append(f"`{doctype}`.item_code = %(item_code)s")
+    if filters.get("subcontracting_for"):
+        conditions.append(f"`{doctype}`.subcontracting_for = %(subcontracting_for)s")
     if filters.get("name"):
         conditions.append(f"`{doctype}`.master_towel_costing = %(name)s")
     if filters.get("supplier"):
@@ -121,9 +120,6 @@ def get_conditions(filters, doctype):
     return " AND ".join(conditions)
 
 
-# SUM(socsi.required_qty) AS required_qty,
-# SUM(socsi.supplied_qty) AS supplied_qty,
-# SUM(socsi.required_qty - socsi.supplied_qty) AS balance
 
 def get_data(filters):
     data = []
