@@ -130,93 +130,93 @@ def get_data(filters):
 
     sco_entry = """
         SELECT
-            subquery.name,
-            subquery.transaction_date,
-            subquery.supplier,
-            subquery.item_code,
-            subquery.qty_pcs,
-            subquery.qty,
-            subquery.rm_item_code,
-            subquery.required_qty,
-            subquery.supplied_qty,
-            subquery.balance_to_supplied,
-            subquery.received_qty,
-            subquery.pcs,
-            subquery.qty_pcs - subquery.pcs AS received_balance
-        FROM (
-            SELECT
-                so.name,
-                so.transaction_date,
-                so.supplier,
-                soi.item_code,
-                soi.qty_pcs,
-                soi.qty,
-                soi.received_qty,
-                NULL AS rm_item_code,
-                NULL AS required_qty,
-                NULL AS supplied_qty,
-                NULL AS balance_to_supplied,
-                NULL AS pcs,
-                NULL AS received_balance
-            FROM
-                `tabSubcontracting Order` AS so
-            LEFT JOIN
-                `tabSubcontracting Order Item` AS soi ON so.name = soi.parent
-            WHERE
-                {conditions} AND so.docstatus = 1
+        subquery.name,
+        subquery.transaction_date,
+        subquery.supplier,
+        subquery.item_code,
+        subquery.qty_pcs,
+        subquery.qty,
+        subquery.rm_item_code,
+        subquery.required_qty,
+        subquery.supplied_qty,
+        subquery.balance_to_supplied,
+        subquery.received_qty,
+        subquery.pcs,
+        subquery.qty_pcs - subquery.pcs AS received_balance
+    FROM (
+        SELECT
+            so.name,
+            so.transaction_date,
+            so.supplier,
+            soi.item_code,
+            soi.qty_pcs,
+            soi.qty,
+            soi.received_qty,
+            NULL AS rm_item_code,
+            NULL AS required_qty,
+            NULL AS supplied_qty,
+            NULL AS balance_to_supplied,
+            NULL AS pcs
+        FROM
+            `tabSubcontracting Order` AS so
+        LEFT JOIN
+            `tabSubcontracting Order Item` AS soi ON so.name = soi.parent
+        WHERE
+            -- Replace the following with your actual conditions
+            so.docstatus = 1 AND {conditions}
+        
+        UNION
+    
+        SELECT
+            so.name,
+            so.transaction_date,
+            so.supplier,
+            soi.item_code,
+            NULL AS qty_pcs,
+            NULL AS qty,
+            soi.received_qty,
+            socsi.rm_item_code,
+            socsi.required_qty,
+            socsi.supplied_qty,
+            socsi.required_qty - socsi.supplied_qty AS balance_to_supplied,
+            NULL AS pcs
+        FROM
+            `tabSubcontracting Order` AS so
+        LEFT JOIN
+            `tabSubcontracting Order Item` AS soi ON so.name = soi.parent
+        LEFT JOIN
+            `tabSubcontracting Order Supplied Item` AS socsi ON so.name = socsi.parent
+        WHERE
+            -- Replace the following with your actual conditions
+            so.docstatus = 1 AND {conditions}
+        
+        UNION
+    
+        SELECT
+            so.name,
+            NULL AS transaction_date,
+            NULL AS supplier,
+            NULL AS item_code,
+            NULL AS qty_pcs,
+            NULL AS qty,
+            NULL AS received_qty,
+            NULL AS rm_item_code,
+            NULL AS required_qty,
+            NULL AS supplied_qty,
+            NULL AS balance_to_supplied,
+            tsri.pcs
+        FROM
+            `tabSubcontracting Order` AS so
+        LEFT JOIN
+            `tabSubcontracting Receipt Item` AS tsri ON so.name = tsri.parent
+        WHERE
+            -- Replace the following with your actual conditions
+            so.docstatus = 1 AND {conditions}
+        
+    ) AS subquery
+    GROUP BY subquery.rm_item_code, subquery.item_code, subquery.name, subquery.supplier
+    ORDER BY subquery.name;
 
-            UNION
-
-            SELECT
-                so.name,
-                so.transaction_date,
-                so.supplier,
-                soi.item_code,
-                NULL AS qty_pcs,
-                NULL AS qty,
-                soi.received_qty,
-                socsi.rm_item_code,
-                socsi.required_qty,
-                socsi.supplied_qty,
-                socsi.required_qty - socsi.supplied_qty AS balance_to_supplied,
-                NULL AS pcs,
-                NULL AS received_balance
-                
-            FROM
-                `tabSubcontracting Order` AS so
-            LEFT JOIN
-                `tabSubcontracting Order Item` AS soi ON so.name = soi.parent
-            LEFT JOIN
-                `tabSubcontracting Order Supplied Item` AS socsi ON so.name = socsi.parent
-            WHERE
-                {conditions} AND so.docstatus = 1
-                
-            UNION
-
-            SELECT
-                so.name,
-                NULL AS transaction_date,
-                NULL AS supplier,
-                NULL AS item_code,
-                NULL AS qty_pcs,
-                NULL AS qty,
-                NULL AS received_qty,
-                NULL AS rm_item_code,
-                NULL AS required_qty,
-                NULL AS supplied_qty,
-                NULL AS balance_to_supplied,
-                tsri.pcs,
-                NULL AS received_balance
-            FROM
-                `tabSubcontracting Order` AS so
-            LEFT JOIN
-                `tabSubcontracting Receipt Item` AS tsri ON so.name = tsri.parent
-            WHERE
-                {conditions} AND so.docstatus = 1
-            
-        ) AS subquery
-        GROUP BY subquery.rm_item_code,subquery.item_code,subquery.name, subquery.supplier
-        ORDER BY subquery.name
     """.format(conditions=get_conditions(filters, "so"))
 
     sco_result = list(frappe.db.sql(sco_entry, filters, as_dict=1))
