@@ -143,7 +143,7 @@ def get_data(filters):
                 soi.item_code,
                 soi.qty_pcs,
                 soi.qty,
-                SUM(soi.received_qty) AS received_qty,
+                soi.received_qty,
                 NULL AS rm_item_code,
                 NULL AS required_qty,
                 NULL AS supplied_qty,
