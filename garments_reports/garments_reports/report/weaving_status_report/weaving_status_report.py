@@ -89,6 +89,14 @@ def get_columns():
             "default": ''
         },
         {
+            "label": _("Received in Pcs"),
+            "fieldname": "description",
+            "fieldtype": "Data",
+            "width": 120,
+            "default": ''
+
+        },
+        {
             "label": _("Received Balance"),
             "fieldname": "received_balance",
             "fieldtype": "Data",
@@ -134,7 +142,7 @@ def get_data(filters):
             subquery.balance_to_supplied,
             subquery.received_qty,
             subquery.description,
-            subquery.received_balance
+            subquery.qty_pcs - subquery.description AS received_balance
         FROM (
             SELECT
                 so.name,
@@ -172,7 +180,7 @@ def get_data(filters):
                 socsi.supplied_qty,
                 socsi.required_qty - socsi.supplied_qty AS balance_to_supplied,
                 NULL AS description,
-                socsi.supplied_qty - soi.received_qty AS received_balance
+                NULL AS received_balance
                 
             FROM
                 `tabSubcontracting Order` AS so
