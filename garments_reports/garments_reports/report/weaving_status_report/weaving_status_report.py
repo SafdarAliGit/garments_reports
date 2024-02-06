@@ -152,7 +152,7 @@ def get_data(filters):
         LEFT JOIN 
             `tabSubcontracting Order Supplied Item` AS socsi ON so.name = socsi.parent
         LEFT JOIN 
-            `tabSubcontracting Receipt Item` AS tsri ON so.name = tsri.parent
+            `tabSubcontracting Receipt Item` AS tsri ON so.name = tsri.subcontracting_order
         WHERE 
             {conditions}
         GROUP BY 
