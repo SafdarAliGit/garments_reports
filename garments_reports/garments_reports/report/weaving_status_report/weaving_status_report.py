@@ -24,6 +24,13 @@ def get_columns():
             "fieldtype": "Date",
             "width": 120
         },
+        {
+         "label": _("PO#"),
+         "fieldname": "master_towel_costing",
+         "fieldtype": "Link",
+         "options": "Master Towel Costing",
+         "width": 120
+        },
 
         {
             "label": _("Supplier"),
@@ -120,120 +127,56 @@ def get_conditions(filters, doctype):
     return " AND ".join(conditions)
 
 
-
 def get_data(filters):
     data = []
-
     sco_entry = """
         SELECT
-        subquery.name,
-        subquery.transaction_date,
-        subquery.supplier,
-        subquery.item_code,
-        subquery.qty_pcs,
-        subquery.qty,
-        subquery.rm_item_code,
-        subquery.required_qty,
-        subquery.supplied_qty,
-        subquery.balance_to_supplied,
-        subquery.received_qty,
-        subquery.pcs,
-        subquery.qty_pcs - subquery.pcs AS received_balance
-    FROM (
-        SELECT
             so.name,
             so.transaction_date,
             so.supplier,
+            so.master_towel_costing,
             soi.item_code,
-            soi.qty_pcs,
-            soi.qty,
-            soi.received_qty,
-            NULL AS rm_item_code,
-            NULL AS required_qty,
-            NULL AS supplied_qty,
-            NULL AS balance_to_supplied,
-            NULL AS pcs
-        FROM
-            `tabSubcontracting Order` AS so
-        LEFT JOIN
-            `tabSubcontracting Order Item` AS soi ON so.name = soi.parent
-        WHERE
-            -- Replace the following with your actual conditions
-            so.docstatus = 1 AND {conditions}
-        
-        UNION
-    
-        SELECT
-            so.name,
-            so.transaction_date,
-            so.supplier,
-            soi.item_code,
-            NULL AS qty_pcs,
-            NULL AS qty,
-            soi.received_qty,
+            SUM(soi.qty_pcs) AS qty_pcs,
+            SUM(soi.qty) AS qty,
+            SUM(soi.received_qty) AS received_qty,
             socsi.rm_item_code,
-            socsi.required_qty,
-            socsi.supplied_qty,
-            socsi.required_qty - socsi.supplied_qty AS balance_to_supplied,
-            NULL AS pcs
-        FROM
+            SUM(socsi.required_qty) AS required_qty,
+            SUM(socsi.supplied_qty) AS supplied_qty,
+            SUM(tsri.pcs) AS pcs,
+            SUM(socsi.required_qty) - SUM(socsi.supplied_qty) AS balance_to_supplied,
+            SUM(soi.qty_pcs) - SUM(tsri.pcs) AS received_balance
+        FROM 
             `tabSubcontracting Order` AS so
-        LEFT JOIN
+        LEFT JOIN 
             `tabSubcontracting Order Item` AS soi ON so.name = soi.parent
-        LEFT JOIN
+        LEFT JOIN 
             `tabSubcontracting Order Supplied Item` AS socsi ON so.name = socsi.parent
-        WHERE
-            -- Replace the following with your actual conditions
-            so.docstatus = 1 AND {conditions}
-        
-        UNION
-    
-        SELECT
-            so.name,
-            NULL AS transaction_date,
-            NULL AS supplier,
-            NULL AS item_code,
-            NULL AS qty_pcs,
-            NULL AS qty,
-            NULL AS received_qty,
-            NULL AS rm_item_code,
-            NULL AS required_qty,
-            NULL AS supplied_qty,
-            NULL AS balance_to_supplied,
-            tsri.pcs
-        FROM
-            `tabSubcontracting Order` AS so
-        LEFT JOIN
+        LEFT JOIN 
             `tabSubcontracting Receipt Item` AS tsri ON so.name = tsri.parent
-        WHERE
-            -- Replace the following with your actual conditions
-            so.docstatus = 1 AND {conditions}
-        
-    ) AS subquery
-    GROUP BY subquery.rm_item_code, subquery.item_code, subquery.name, subquery.supplier
-    ORDER BY subquery.name;
-
+        WHERE 
+            {conditions}
+        GROUP BY 
+            so.name, soi.item_code,socsi.rm_item_code,so.transaction_date, so.supplier, so.master_towel_costing
+        ORDER BY 
+            so.name
     """.format(conditions=get_conditions(filters, "so"))
 
-    sco_result = list(frappe.db.sql(sco_entry, filters, as_dict=1))
+    sco_result = frappe.db.sql(sco_entry, filters, as_dict=1)
     # TO REMOVE DUPLICATES
-    keys_to_check = ['name', 'received_qty']
-    seen_values = {key: set() for key in keys_to_check}
+    keys_to_check = ['name', 'transaction_date', 'supplier', 'item_code', 'qty', 'received_qty','master_towel_costing']
+    seen_values = []
 
     for entry in sco_result:
         key_values = tuple(entry[key] for key in keys_to_check)
 
-        is_duplicate = any(value in seen_values[key] for key, value in zip(keys_to_check, key_values))
-
-        if is_duplicate:
+        if key_values in seen_values:
             for key in keys_to_check:
                 entry[key] = None
         else:
-            for key, value in zip(keys_to_check, key_values):
-                seen_values[key].add(value)
+            seen_values.append(key_values)
 
     # END
     data.extend(sco_result)
+
     return data
-# or key_master_towel_costing in seen_value_master_towel_costing
-#                 or key_item_code in seen_value_item_code or key_supplier in seen_value_supplier
+

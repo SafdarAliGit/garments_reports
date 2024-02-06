@@ -3,18 +3,18 @@ frappe.query_reports["Weaving Status Report"] = {
         {
             "fieldname": "subcontracting_for",
             "label": __("Subcontracting For"),
-            "fieldtype": "Link",
-            "options": "Subcontracting Order",
-            "default": "Weaving Charges",
-            "reqd": 1
+            "fieldtype": "Select",
+            "options": ["Weaving Charges", "Dyeing"],
+            "default": "Weaving Charges"
+            // "reqd": 1
 
         },
         {
             "fieldname": "name",
             "label": __("Master Towel Costing"),
             "fieldtype": "Link",
-            "options": "Master Towel Costing",
-            "reqd": 1
+            "options": "Master Towel Costing"
+            // "reqd": 1
         },
         {
             "fieldname": "supplier",
