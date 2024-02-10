@@ -68,6 +68,12 @@ def get_columns():
             "width": 140
         },
         {
+            "label": _("Color"),
+            "fieldname": "color",
+            "fieldtype": "Data",
+            "width": 120
+        },
+        {
             "label": _("Required"),
             "fieldname": "required_qty",
             "fieldtype": "Data",
@@ -136,6 +142,7 @@ def get_data(filters):
             so.supplier,
             so.master_towel_costing,
             soi.item_code,
+            dp.color,
             SUM(soi.qty_pcs) AS qty_pcs,
             SUM(soi.qty) AS qty,
             SUM(soi.received_qty) AS received_qty,
@@ -152,11 +159,13 @@ def get_data(filters):
         LEFT JOIN 
             `tabSubcontracting Order Supplied Item` AS socsi ON so.name = socsi.parent
         LEFT JOIN 
-            `tabSubcontracting Receipt Item` AS tsri ON so.name = tsri.subcontracting_order
+            `tabSubcontracting Receipt Item` AS tsri ON so.name = tsri.subcontracting_order   
+        LEFT JOIN 
+            `tabDyeing Program` AS dp ON so.name = dp.parent
         WHERE 
-            {conditions}
+            {conditions} AND so.docstatus = 1
         GROUP BY 
-            so.name, soi.item_code,socsi.rm_item_code,so.transaction_date, so.supplier, so.master_towel_costing
+            so.name, soi.item_code,socsi.rm_item_code,so.transaction_date, so.supplier, so.master_towel_costing, dp.color
         ORDER BY 
             so.name
     """.format(conditions=get_conditions(filters, "so"))
