@@ -144,7 +144,7 @@ def get_data(filters):
             soi.item_code,
             dp.color,
             SUM(soi.qty_pcs) AS qty_pcs,
-            SUM(soi.qty) AS qty,
+            soi.qty,
             SUM(soi.received_qty) AS received_qty,
             socsi.rm_item_code,
             SUM(socsi.required_qty) AS required_qty,
