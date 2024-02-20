@@ -143,15 +143,15 @@ def get_data(filters):
             so.master_towel_costing,
             soi.item_code,
             dp.color,
-            SUM(soi.qty_pcs) AS qty_pcs,
+            soi.qty_pcs,
             soi.qty,
-            SUM(soi.received_qty) AS received_qty,
+            soi.received_qty,
             socsi.rm_item_code,
-            SUM(socsi.required_qty) AS required_qty,
-            SUM(socsi.supplied_qty) AS supplied_qty,
-            SUM(tsri.pcs) AS pcs,
-            SUM(socsi.required_qty) - SUM(socsi.supplied_qty) AS balance_to_supplied,
-            SUM(soi.qty_pcs) - SUM(tsri.pcs) AS received_balance
+            socsi.required_qty,
+            socsi.supplied_qty,
+            tsri.pcs,
+            socsi.required_qty - socsi.supplied_qty AS balance_to_supplied,
+            soi.qty_pcs - tsri.pcs AS received_balance
         FROM 
             `tabSubcontracting Order` AS so
         LEFT JOIN 
@@ -172,17 +172,17 @@ def get_data(filters):
 
     sco_result = frappe.db.sql(sco_entry, filters, as_dict=1)
     # TO REMOVE DUPLICATES
-    # keys_to_check = ['name', 'transaction_date', 'supplier', 'item_code','qty_pcs', 'qty', 'received_qty','master_towel_costing','pcs','received_balance']
-    # seen_values = []
-    #
-    # for entry in sco_result:
-    #     key_values = tuple(entry[key] for key in keys_to_check)
-    #
-    #     if key_values in seen_values:
-    #         for key in keys_to_check:
-    #             entry[key] = None
-    #     else:
-    #         seen_values.append(key_values)
+    keys_to_check = ['name', 'transaction_date', 'supplier', 'item_code','qty_pcs', 'qty', 'received_qty','master_towel_costing','pcs','received_balance']
+    seen_values = []
+
+    for entry in sco_result:
+        key_values = tuple(entry[key] for key in keys_to_check)
+
+        if key_values in seen_values:
+            for key in keys_to_check:
+                entry[key] = None
+        else:
+            seen_values.append(key_values)
 
     # END
     data.extend(sco_result)
