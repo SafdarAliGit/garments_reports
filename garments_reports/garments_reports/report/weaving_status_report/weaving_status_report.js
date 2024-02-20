@@ -21,6 +21,12 @@ frappe.query_reports["Weaving Status Report"] = {
             "label": __("Supplier"),
             "fieldtype": "Link",
             "options": "Supplier"
+        },
+        {
+            "fieldname": "item_group",
+            "label": __("Item Group"),
+            "fieldtype": "Link",
+            "options": "Item Group"
         }
     ]
 };
