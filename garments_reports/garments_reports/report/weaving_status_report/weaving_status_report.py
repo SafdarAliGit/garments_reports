@@ -128,7 +128,7 @@ def get_conditions(filters, doctype):
     if filters.get("name"):
         conditions.append(f"`{doctype}`.master_towel_costing = %(name)s")
     if filters.get("item_group"):
-        conditions.append(f"soi.item_code IN (SELECT name FROM `tabItem` WHERE item_group =  %(item_group)s)")
+        conditions.append(f"socsi.rm_item_code IN (SELECT name FROM `tabItem` WHERE item_group =  %(item_group)s)")
     if filters.get("supplier"):
         conditions.append(f"`{doctype}`.supplier = %(supplier)s")
 
