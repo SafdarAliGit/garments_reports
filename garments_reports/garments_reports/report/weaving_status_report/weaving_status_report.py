@@ -127,6 +127,8 @@ def get_conditions(filters, doctype):
         conditions.append(f"`{doctype}`.subcontracting_for = %(subcontracting_for)s")
     if filters.get("name"):
         conditions.append(f"`{doctype}`.master_towel_costing = %(name)s")
+    if filters.get("item_group"):
+        conditions.append(f"soi.item_code IN (SELECT name FROM `tabItem` WHERE item_group =  %(item_group)s)")
     if filters.get("supplier"):
         conditions.append(f"`{doctype}`.supplier = %(supplier)s")
 
@@ -135,11 +137,9 @@ def get_conditions(filters, doctype):
 
 def get_data(filters):
     data = []
-    # Get the item_group from filters
-    item_group = filters.get("item_group")
-
+    # Get the item_group from filter
     # Adding the condition for item_group
-    condition_item_group = f"AND soi.item_code IN (SELECT name FROM `tabItem` WHERE item_group = '{item_group}')"
+
 
     sco_entry = """
         SELECT
@@ -170,13 +170,12 @@ def get_data(filters):
             `tabDyeing Program` AS dp ON so.name = dp.parent
         WHERE 
             {conditions}
-            {item_group_condition}
             AND so.docstatus = 1
         GROUP BY 
             so.name, soi.item_code,socsi.rm_item_code,so.transaction_date, so.supplier, so.master_towel_costing, dp.color
         ORDER BY 
             so.name
-    """.format(conditions=get_conditions(filters, "so"), item_group_condition=condition_item_group)
+    """.format(conditions=get_conditions(filters, "so"))
 
 
     sco_result = frappe.db.sql(sco_entry, filters, as_dict=1)
