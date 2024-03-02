@@ -87,11 +87,11 @@ def get_data(filters):
     srsi_query = """
                 SELECT 
                     srsi.rm_item_code,
-                    ROUND(SUM(srsi.current_stock),2) AS consumed_qty,
-                    ROUND(SUM(srsi.current_stock/100)) AS bags,
+                    ROUND(SUM(srsi.supplied_qty),2) AS consumed_qty,
+                    ROUND(SUM(srsi.supplied_qty/100)) AS bags,
                     ROUND(SUM(srsi.amount),2) AS amount
                 FROM 
-                    `tabSubcontracting Receipt Supplied Item` AS srsi, `tabSubcontracting Receipt` AS sr, `tabItem` AS item
+                    `tabSubcontracting Order Supplied Item` AS srsi, `tabSubcontracting Order` AS sr, `tabItem` AS item
                 WHERE
                     srsi.rm_item_code = item.item_code AND item.parent_item_group = 'Yarn'  AND sr.docstatus = 1 AND sr.name = srsi.parent AND
                     {conditions}
