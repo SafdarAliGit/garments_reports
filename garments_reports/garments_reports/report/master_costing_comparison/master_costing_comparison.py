@@ -87,8 +87,8 @@ def get_data(filters):
     srsi_query = """
                 SELECT 
                     srsi.rm_item_code,
-                    ROUND(SUM(srsi.consumed_qty),2) AS consumed_qty,
-                    ROUND(SUM(srsi.consumed_qty/100)) AS bags,
+                    ROUND(SUM(srsi.supplied_qty),2) AS consumed_qty,
+                    ROUND(SUM(srsi.supplied_qty/100)) AS bags,
                     ROUND(SUM(srsi.amount),2) AS amount
                 FROM 
                     `tabSubcontracting Receipt Supplied Item` AS srsi, `tabSubcontracting Receipt` AS sr, `tabItem` AS item
@@ -176,7 +176,7 @@ def get_data(filters):
     total_bags = 0
     total_amount = 0
     heading2=[{
-        "rm_item_code": _("<b style='font-size: 12px;'><u>Actual Yarn Consumption</u></b>"),
+        "rm_item_code": _("<b style='font-size: 12px;'><u>Actual Yarn Issuence</u></b>"),
         "consumed_qty": _("------------"),
         "bags": _("------------"),
         "amount": None,
