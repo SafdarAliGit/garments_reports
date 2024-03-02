@@ -87,8 +87,8 @@ def get_data(filters):
     srsi_query = """
                 SELECT 
                     srsi.rm_item_code,
-                    ROUND(SUM(srsi.supplied_qty),2) AS consumed_qty,
-                    ROUND(SUM(srsi.supplied_qty/100)) AS bags,
+                    ROUND(SUM(srsi.current_stock),2) AS consumed_qty,
+                    ROUND(SUM(srsi.current_stock/100)) AS bags,
                     ROUND(SUM(srsi.amount),2) AS amount
                 FROM 
                     `tabSubcontracting Receipt Supplied Item` AS srsi, `tabSubcontracting Receipt` AS sr, `tabItem` AS item
