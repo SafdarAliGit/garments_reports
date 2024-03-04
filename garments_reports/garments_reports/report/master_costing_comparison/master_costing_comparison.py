@@ -57,6 +57,9 @@ def get_conditions(filters, doctype):
     elif doctype == 'pii':
         if filters.get("name"):
             conditions.append(f"`{doctype}`.master_towel_costing = %(name)s")
+    elif doctype == 'sii':
+        if filters.get("name"):
+            conditions.append(f"`{doctype}`.master_towel_costing = %(name)s")
     elif doctype == 'mtc_other':
         if filters.get("name"):
             conditions.append(f"`{doctype}`.name = %(name)s")
@@ -148,11 +151,26 @@ def get_data(filters):
             """.format(conditions=get_conditions(filters, "mtc_other"))
 
     mtc_other_result = frappe.db.sql(mtc_other_query, filters, as_dict=1)
+    sale_items = """
+                    SELECT 
+                        sii.item_code AS rm_item_code,
+                        si.name AS consumed_qty,
+                        si.customer AS bags,
+                        ROUND(SUM(sii.amount),2) AS amount
+                    FROM 
+                        `tabSales Invoice` AS si, `tabSales Invoice Item` AS sii
+                    WHERE
+                        sii.parent = si.name AND si.docstatus = 1 AND sii.amount >0 AND
+                        {conditions}
+                    GROUP BY
+                        sii.item_code, si.name
+                    """.format(conditions=get_conditions(filters, "sii"))
+    sales_items_result = frappe.db.sql(sale_items, filters, as_dict=1)
     # sum for first query
     total_yarn_required_in_lbs = 0
     total_bags_reqd = 0
     total_cost = 0
-    heading1=[{
+    heading1 = [{
         "rm_item_code": _("<b style='font-size: 12px;'><u>Master Costing Yarn Projection</u></b>"),
         "consumed_qty": _("------------"),
         "bags": _("------------"),
@@ -165,7 +183,7 @@ def get_data(filters):
         total_cost += row["amount"]
     mtc_result.append({
         "rm_item_code": _("<b>Total</b>"),
-        "consumed_qty": f"<b>{int(total_yarn_required_in_lbs)}</b>",
+        "consumed_qty": f"<b>{float(total_yarn_required_in_lbs)}</b>",
         "bags": f"<b>{total_bags_reqd}</b>",
         "amount": f"<b>{total_cost:.2f}</b>",
     })
@@ -174,8 +192,8 @@ def get_data(filters):
     # sum for second query
     total_consumed_qty = 0
     total_bags = 0
-    total_amount = 0
-    heading2=[{
+    total_issuence_amount = 0
+    heading2 = [{
         "rm_item_code": _("<b style='font-size: 12px;'><u>Actual Yarn Issuence</u></b>"),
         "consumed_qty": _("------------"),
         "bags": _("------------"),
@@ -184,12 +202,12 @@ def get_data(filters):
     for row in srsi_result:
         total_consumed_qty += row["consumed_qty"]
         total_bags += row["bags"]
-        total_amount += row["amount"]
+        total_issuence_amount += row["amount"]
     srsi_result.append({
         "rm_item_code": _("<b>Total</b>"),
-        "consumed_qty": f"<b>{int(total_consumed_qty)}</b>",
-        "bags": f"<b>{total_bags }</b>",
-        "amount": f"<b>{total_amount:.2f}</b>"
+        "consumed_qty": f"<b>{float(total_consumed_qty)}</b>",
+        "bags": f"<b>{total_bags}</b>",
+        "amount": f"<b>{total_issuence_amount:.2f}</b>"
     })
     srsi_result = heading2 + srsi_result
 
@@ -199,13 +217,13 @@ def get_data(filters):
         "rm_item_code": _("<b style='font-size: 12px;'><u>Payment Entries</u></b>"),
         "consumed_qty": _("------------"),
         "bags": _("------------"),
-        "amount":None,
-        },
+        "amount": None,
+    },
         {
             "rm_item_code": _("<b style='font-size: 12px;'>Debit Account</b>"),
             "consumed_qty": _("<b style='font-size: 12px;'>Posting Date</b>"),
             "bags": _("------------"),
-            "amount":_("<b style='font-size: 12px;'>Debit Amount</b>"),
+            "amount": _("<b style='font-size: 12px;'>Debit Amount</b>"),
         }
     ]
     for row in glentry_result:
@@ -217,43 +235,43 @@ def get_data(filters):
         "amount": f"<b>{total_gle_amount:.2f}</b>"
     })
     glentry_result = heading3 + glentry_result
-# diff of sums
+    # diff of sums
     srsi_result.append(
         {
             "rm_item_code": _("<b>Difference</b>"),
-            "consumed_qty": f"<b>{int(total_yarn_required_in_lbs - total_consumed_qty):.2f}</b>",
+            "consumed_qty": f"<b>{float(total_yarn_required_in_lbs - total_consumed_qty):.2f}</b>",
             "bags": f"<b>{total_bags_reqd - total_bags}</b>",
-            "amount": f"<b>{total_cost - total_amount:.2f}</b>"
+            "amount": f"<b>{total_cost - total_issuence_amount:.2f}</b>"
         }
     )
-    # sum for third query
     # sum for fourth query
-    total_amount = 0
-    heading4=[{
+    total_purchase_amount = 0
+    heading4 = [{
         "rm_item_code": _("<b style='font-size: 12px;'><u>Purchase Items</u></b>"),
         "consumed_qty": _("------------"),
         "bags": _("------------"),
         "amount": None,
     },
-    {
-        "rm_item_code": _("<b style='font-size: 12px;'>Item Code</b>"),
-        "consumed_qty": _("<b style='font-size: 12px;'>Voucher No</b>"),
-        "bags": _("<b style='font-size: 12px;'>Supplier</b>"),
-        "amount": _("<b style='font-size: 12px;'>Amount</b>"),
-    }
+        {
+            "rm_item_code": _("<b style='font-size: 12px;'>Item Code</b>"),
+            "consumed_qty": _("<b style='font-size: 12px;'>Voucher No</b>"),
+            "bags": _("<b style='font-size: 12px;'>Supplier</b>"),
+            "amount": _("<b style='font-size: 12px;'>Amount</b>"),
+        }
     ]
     for row in purchase_items_result:
-        total_amount += row["amount"]
+        total_purchase_amount += row["amount"]
     purchase_items_result.append({
         "rm_item_code": _("<b>Total</b>"),
         "consumed_qty": _("------------"),
         "bags": _("------------"),
-        "amount": f"<b>{total_amount:.2f}</b>"
+        "amount": f"<b>{total_purchase_amount:.2f}</b>"
     })
     purchase_items_result = heading4 + purchase_items_result
     # fifth query
-    total_other_amount = mtc_other_result[0]['weaving'] + mtc_other_result[0]['dying'] + mtc_other_result[0]['stitching'] + \
-                   mtc_other_result[0]['accessories'] + mtc_other_result[0]['clearing']
+    total_other_amount = mtc_other_result[0]['weaving'] + mtc_other_result[0]['dying'] + mtc_other_result[0][
+        'stitching'] + \
+                         mtc_other_result[0]['accessories'] + mtc_other_result[0]['clearing']
     heading5 = [{
         "rm_item_code": _("<b style='font-size: 12px;'><u>Master Costing Other Projection</u></b>"),
         "consumed_qty": _("------------"),
@@ -299,10 +317,49 @@ def get_data(filters):
     ]
     mtc_other_result = heading5
 
+    # sum for 6th query
+    total_sale_amount = 0
+    heading6 = [{
+        "rm_item_code": _("<b style='font-size: 12px;'><u>Sales Items</u></b>"),
+        "consumed_qty": _("------------"),
+        "bags": _("------------"),
+        "amount": None,
+    },
+        {
+            "rm_item_code": _("<b style='font-size: 12px;'>Item Code</b>"),
+            "consumed_qty": _("<b style='font-size: 12px;'>Voucher No</b>"),
+            "bags": _("<b style='font-size: 12px;'>Customer</b>"),
+            "amount": _("<b style='font-size: 12px;'>Amount</b>"),
+        }
+    ]
+    for row in sales_items_result:
+        total_sale_amount += row["amount"]
+    sales_items_result.append({
+        "rm_item_code": _("<b>Total</b>"),
+        "consumed_qty": _("------------"),
+        "bags": _("------------"),
+        "amount": f"<b>{total_sale_amount:.2f}</b>"
+    })
+    heading7 = [{
+        "rm_item_code": _("<b style='font-size: 12px;'><u>Cost Total</u></b>"),
+        "consumed_qty": _("------------"),
+        "bags": _("------------"),
+        "amount": f"<b>{(float(total_issuence_amount) + float(total_purchase_amount)):.2f}</b>",
+    },
+    {
+        "rm_item_code": _("<b style='font-size: 12px;'><u>Net Profit/Loss</u></b>"),
+        "consumed_qty": _("------------"),
+        "bags": _("------------"),
+        "amount": f"<b>{(float(total_sale_amount) - (float(total_issuence_amount) + float(total_purchase_amount))):.2f}</b>",
+    },
+    ]
+    sales_items_result = heading6 + sales_items_result + heading7
+
     data.extend(mtc_result)
     data.extend(srsi_result)
     data.extend(purchase_items_result)
     data.extend(glentry_result)
     data.extend(mtc_other_result)
+    data.extend(sales_items_result)
 
     return data
