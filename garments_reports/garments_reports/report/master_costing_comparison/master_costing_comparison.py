@@ -205,7 +205,7 @@ def get_data(filters):
         total_issuence_amount += row["amount"]
     srsi_result.append({
         "rm_item_code": _("<b>Total</b>"),
-        "consumed_qty": f"<b>{float(total_consumed_qty)}</b>",
+        "consumed_qty": f"<b>{float(total_consumed_qty):.2f}</b>",
         "bags": f"<b>{total_bags}</b>",
         "amount": f"<b>{total_issuence_amount:.2f}</b>"
     })
