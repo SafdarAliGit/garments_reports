@@ -156,11 +156,11 @@ def get_data(filters):
                         sii.item_code AS rm_item_code,
                         si.name AS consumed_qty,
                         si.customer AS bags,
-                        ROUND(SUM(sii.amount),2) AS amount
+                        ROUND(SUM(sii.base_amount),2) AS amount
                     FROM 
                         `tabSales Invoice` AS si, `tabSales Invoice Item` AS sii
                     WHERE
-                        sii.parent = si.name AND si.docstatus = 1 AND sii.amount >0 AND
+                        sii.parent = si.name AND si.docstatus = 1 AND sii.base_amount >0 AND
                         {conditions}
                     GROUP BY
                         sii.item_code, si.name
