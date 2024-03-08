@@ -45,7 +45,7 @@ def get_columns():
 
 def get_conditions(filters, doctype):
     conditions = []
-    if doctype == 'sr':
+    if doctype == 'se':
         if filters.get("name"):
             conditions.append(f"`{doctype}`.master_towel_costing = %(name)s")
     elif doctype == 'mtc':
@@ -89,18 +89,18 @@ def get_data(filters):
 
     srsi_query = """
                 SELECT 
-                    srsi.rm_item_code,
-                    ROUND(SUM(srsi.supplied_qty),2) AS consumed_qty,
-                    ROUND(SUM(srsi.supplied_qty/100)) AS bags,
-                    ROUND(SUM(srsi.amount),2) AS amount
+                    sed.item_code AS rm_item_code,
+                    ROUND(SUM(sed.qty),2) AS consumed_qty,
+                    ROUND(SUM(sed.qty/100)) AS bags,
+                    ROUND(SUM(sed.amount),2) AS amount
                 FROM 
-                    `tabSubcontracting Order Supplied Item` AS srsi, `tabSubcontracting Order` AS sr, `tabItem` AS item
+                    `tabStock Entry Detail` AS sed, `tabStock Entry` AS se
                 WHERE
-                    srsi.rm_item_code = item.item_code AND item.parent_item_group = 'Yarn'  AND sr.docstatus = 1 AND sr.name = srsi.parent AND
+                    se.name = sed.parent AND sed.item_group = 'Yarn' AND se.docstatus = 1 AND 
                     {conditions}
                 GROUP BY
-                    srsi.rm_item_code
-                """.format(conditions=get_conditions(filters, "sr"))
+                    sed.item_code
+                """.format(conditions=get_conditions(filters, "se"))
 
     srsi_result = frappe.db.sql(srsi_query, filters, as_dict=1)
 
