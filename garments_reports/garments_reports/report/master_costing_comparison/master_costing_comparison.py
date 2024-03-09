@@ -152,19 +152,19 @@ def get_data(filters):
 
     mtc_other_result = frappe.db.sql(mtc_other_query, filters, as_dict=1)
     sale_items = """
-                    SELECT 
-                        sii.item_code AS rm_item_code,
-                        si.name AS consumed_qty,
-                        si.customer AS bags,
-                        ROUND(SUM(sii.base_amount),2) AS amount
-                    FROM 
-                        `tabSales Invoice` AS si, `tabSales Invoice Item` AS sii
-                    WHERE
-                        sii.parent = si.name AND si.docstatus = 1 AND sii.base_amount >0 AND
-                        {conditions}
-                    GROUP BY
-                        sii.item_code, si.name
-                    """.format(conditions=get_conditions(filters, "sii"))
+            SELECT 
+                sii.item_code AS rm_item_code,
+                si.name AS consumed_qty,
+                si.customer AS bags,
+                ROUND(SUM(sii.qty) * COALESCE(((SELECT total_price_in_pkr_price_per_piece FROM `tabTowel Costing Sheet` WHERE master_towel_costing = sii.master_towel_costing ORDER BY creation DESC LIMIT 1)),3),0) AS amount
+            FROM 
+                `tabSales Invoice` AS si, `tabSales Invoice Item` AS sii
+            WHERE
+                sii.parent = si.name AND si.docstatus = 1 AND sii.base_amount >0 AND
+                {conditions}
+            GROUP BY
+                sii.item_code, si.name
+            """.format(conditions=get_conditions(filters, "sii"))
     sales_items_result = frappe.db.sql(sale_items, filters, as_dict=1)
     # sum for first query
     total_yarn_required_in_lbs = 0
