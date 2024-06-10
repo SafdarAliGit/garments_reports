@@ -160,19 +160,19 @@ def get_data(filters):
             ROUND(SUM(soi.qty_pcs) - SUM(tsri.pcs),3) AS received_balance
         FROM 
             `tabSubcontracting Order` AS so
-        JOIN 
+        LEFT JOIN 
             `tabSubcontracting Order Item` AS soi ON so.name = soi.parent
-        JOIN 
+        LEFT JOIN 
             `tabSubcontracting Order Supplied Item` AS socsi ON so.name = socsi.parent
-        JOIN 
+        LEFT JOIN 
             `tabSubcontracting Receipt Item` AS tsri ON so.name = tsri.subcontracting_order   
-        JOIN 
+        LEFT JOIN 
             `tabDyeing Program` AS dp ON so.name = dp.parent
         WHERE 
             {conditions}
             AND so.docstatus = 1
         GROUP BY 
-            socsi.rm_item_code
+            so.name, soi.item_code,socsi.rm_item_code,so.transaction_date, so.supplier, so.master_towel_costing, dp.color
         ORDER BY 
             so.name
     """.format(conditions=get_conditions(filters, "so"))
