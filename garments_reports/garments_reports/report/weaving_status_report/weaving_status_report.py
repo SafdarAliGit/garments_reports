@@ -172,7 +172,7 @@ def get_data(filters):
             {conditions}
             AND so.docstatus = 1
         GROUP BY 
-            so.name
+            socsi.rm_item_code
         ORDER BY 
             so.name
     """.format(conditions=get_conditions(filters, "so"))
