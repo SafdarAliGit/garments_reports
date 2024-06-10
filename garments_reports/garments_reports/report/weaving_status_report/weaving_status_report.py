@@ -172,7 +172,7 @@ def get_data(filters):
             {conditions}
             AND so.docstatus = 1
         GROUP BY 
-            so.name, soi.item_code,socsi.rm_item_code,so.transaction_date, so.supplier, so.master_towel_costing, dp.color
+            so.name
         ORDER BY 
             so.name
     """.format(conditions=get_conditions(filters, "so"))
@@ -180,7 +180,7 @@ def get_data(filters):
 
     sco_result = frappe.db.sql(sco_entry, filters, as_dict=1)
     # TO REMOVE DUPLICATES
-    keys_to_check = ['name', 'transaction_date', 'supplier', 'item_code','qty_pcs', 'qty', 'received_qty','master_towel_costing','pcs','received_balance']
+    keys_to_check = ['name', ]
     seen_values = []
 
     for entry in sco_result:
