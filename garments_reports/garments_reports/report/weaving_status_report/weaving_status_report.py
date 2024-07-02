@@ -153,11 +153,11 @@ def get_data(filters):
             soi.qty,
             soi.received_qty,
             socsi.rm_item_code,
-            ROUND(SUM(socsi.required_qty),3) AS required_qty,
-            SUM(socsi.supplied_qty) AS supplied_qty,
-            SUM(tsri.pcs) AS pcs,
-            ROUND(SUM(socsi.required_qty) - SUM(socsi.supplied_qty),3) AS balance_to_supplied,
-            ROUND(SUM(soi.qty_pcs) - SUM(tsri.pcs),3) AS received_balance
+            ROUND(socsi.required_qty,3) AS required_qty,
+            socsi.supplied_qty AS supplied_qty,
+            tsri.pcs AS pcs,
+            ROUND(socsi.required_qty - socsi.supplied_qty,3) AS balance_to_supplied,
+            ROUND(soi.qty_pcs - tsri.pcs,3) AS received_balance
         FROM 
             `tabSubcontracting Order` AS so
         LEFT JOIN 
@@ -174,7 +174,7 @@ def get_data(filters):
         GROUP BY 
             so.name, soi.item_code,socsi.rm_item_code,so.transaction_date, so.supplier, so.master_towel_costing, dp.color
         ORDER BY 
-            soi.item_code,socsi.rm_item_code,so.transaction_date, so.supplier, so.master_towel_costing, dp.color
+            so.name,soi.item_code,socsi.rm_item_code,so.transaction_date, so.supplier, so.master_towel_costing, dp.color
     """.format(conditions=get_conditions(filters, "so"))
 
 
