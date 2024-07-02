@@ -174,7 +174,7 @@ def get_data(filters):
         GROUP BY 
             so.name
         ORDER BY 
-            so.name,soi.item_code,socsi.rm_item_code
+            so.name,soi.item_code,socsi.rm_item_code,so.master_towel_costing
     """.format(conditions=get_conditions(filters, "so"))
 
 
