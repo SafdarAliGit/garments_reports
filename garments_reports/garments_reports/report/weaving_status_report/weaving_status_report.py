@@ -172,7 +172,7 @@ def get_data(filters):
             {conditions}
             AND so.docstatus = 1
         GROUP BY 
-            so.name, soi.item_code,socsi.rm_item_code,so.transaction_date, so.supplier, so.master_towel_costing, dp.color
+            so.name,socsi.rm_item_code,so.transaction_date, so.supplier, so.master_towel_costing, dp.color
         ORDER BY 
             so.name,soi.item_code,socsi.rm_item_code,so.transaction_date, so.supplier, so.master_towel_costing, dp.color
     """.format(conditions=get_conditions(filters, "so"))
