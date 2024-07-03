@@ -171,8 +171,6 @@ def get_data(filters):
         WHERE 
             {conditions}
             AND so.docstatus = 1
-        GROUP BY 
-            so.name,so.transaction_date, so.supplier, so.master_towel_costing, dp.color
     """.format(conditions=get_conditions(filters, "so"))
 
 
