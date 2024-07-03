@@ -110,7 +110,7 @@ def get_columns():
 
         },
         {
-            "label": _("Received Balance(PCS)"),
+            "label": _("Received Balance(LBS)"),
             "fieldname": "received_balance",
             "fieldtype": "Data",
             "width": 120,
@@ -157,7 +157,7 @@ def get_data(filters):
             socsi.supplied_qty AS supplied_qty,
             tsri.pcs AS pcs,
             ROUND(socsi.required_qty - socsi.supplied_qty,3) AS balance_to_supplied,
-            ROUND(soi.qty_pcs - tsri.pcs,3) AS received_balance
+            ROUND(soi.qty - soi.received_qty,3) AS received_balance
         FROM 
             `tabSubcontracting Order` AS so
         LEFT JOIN 
