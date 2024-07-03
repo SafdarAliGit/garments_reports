@@ -110,7 +110,7 @@ def get_columns():
 
         },
         {
-            "label": _("Received Balance"),
+            "label": _("Received Balance(PCS)"),
             "fieldname": "received_balance",
             "fieldtype": "Data",
             "width": 120,
