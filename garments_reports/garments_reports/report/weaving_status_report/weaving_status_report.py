@@ -155,12 +155,13 @@ def get_data(filters):
             socsi.rm_item_code,
             ROUND(socsi.required_qty,3) AS required_qty,
             socsi.supplied_qty AS supplied_qty,
-            tsri.pcs AS pcs,
+            soi.qty_pcs_receipt AS pcs,
             ROUND(socsi.required_qty - socsi.supplied_qty,3) AS balance_to_supplied,
             ROUND(soi.qty - soi.received_qty,3) AS received_balance
         FROM 
             `tabSubcontracting Order` AS so
-        LEFT JOIN 
+        
+         JOIN 
             `tabSubcontracting Order Item` AS soi ON so.name = soi.parent
         LEFT JOIN 
             `tabSubcontracting Order Supplied Item` AS socsi ON so.name = socsi.parent
@@ -171,6 +172,10 @@ def get_data(filters):
         WHERE 
             {conditions}
             AND so.docstatus = 1
+        GROUP BY 
+            so.name,socsi.rm_item_code,so.transaction_date, so.supplier, so.master_towel_costing, dp.color
+        ORDER BY 
+            so.name,soi.item_code,socsi.rm_item_code,so.transaction_date, so.supplier, so.master_towel_costing, dp.color
     """.format(conditions=get_conditions(filters, "so"))
 
 
