@@ -88,18 +88,24 @@ def get_data(filters):
     mtc_result = frappe.db.sql(mtc_query, filters, as_dict=1)
 
     srsi_query = """
-                SELECT 
-                    sed.item_code AS rm_item_code,
-                    ROUND(SUM(sed.qty),2) AS consumed_qty,
-                    ROUND(SUM(sed.qty/100)) AS bags,
-                    ROUND(SUM(sed.amount),2) AS amount
-                FROM 
-                    `tabStock Entry Detail` AS sed, `tabStock Entry` AS se
-                WHERE
-                    se.name = sed.parent AND sed.item_group = 'Yarn' AND se.docstatus = 1 AND 
-                    {conditions}
-                GROUP BY
-                    sed.item_code
+            SELECT 
+                sed.item_code AS rm_item_code,
+                ROUND(SUM(sed.qty), 2) AS consumed_qty,
+                ROUND(SUM(sed.qty/100), 0) AS bags,
+                ROUND(SUM(sed.amount), 2) AS amount
+            FROM 
+                `tabStock Entry Detail` AS sed
+            JOIN
+                `tabStock Entry` AS se ON se.name = sed.parent
+            JOIN
+                `tabItem` AS item ON sed.item_code = item.name
+            WHERE
+                sed.item_group = 'Yarn' 
+                AND item.parent_item_group = 'Yarn'
+                AND se.docstatus = 1 
+                AND {conditions}
+            GROUP BY
+                sed.item_code
                 """.format(conditions=get_conditions(filters, "se"))
 
     srsi_result = frappe.db.sql(srsi_query, filters, as_dict=1)
@@ -346,12 +352,12 @@ def get_data(filters):
         "bags": _("------------"),
         "amount": f"<b>{(float(total_issuence_amount) + float(total_purchase_amount)):.2f}</b>",
     },
-    {
-        "rm_item_code": _("<b style='font-size: 12px;'><u>Net Profit/Loss</u></b>"),
-        "consumed_qty": _("------------"),
-        "bags": _("------------"),
-        "amount": f"<b>{(float(total_sale_amount) - (float(total_issuence_amount) + float(total_purchase_amount))):.2f}</b>",
-    },
+        {
+            "rm_item_code": _("<b style='font-size: 12px;'><u>Net Profit/Loss</u></b>"),
+            "consumed_qty": _("------------"),
+            "bags": _("------------"),
+            "amount": f"<b>{(float(total_sale_amount) - (float(total_issuence_amount) + float(total_purchase_amount))):.2f}</b>",
+        },
     ]
     sales_items_result = heading6 + sales_items_result + heading7
 
