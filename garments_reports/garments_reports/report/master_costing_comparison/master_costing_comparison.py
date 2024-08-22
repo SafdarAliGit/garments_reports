@@ -100,8 +100,7 @@ def get_data(filters):
             JOIN
                 `tabItem` AS item ON sed.item_code = item.name
             WHERE
-                sed.item_group = 'Yarn' 
-                AND item.parent_item_group = 'Yarn'
+                item.parent_item_group = 'Yarn'
                 AND se.docstatus = 1 
                 AND {conditions}
             GROUP BY
