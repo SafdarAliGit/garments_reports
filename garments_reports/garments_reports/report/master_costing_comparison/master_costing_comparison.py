@@ -161,7 +161,7 @@ def get_data(filters):
                 sii.item_code AS rm_item_code,
                 si.name AS consumed_qty,
                 si.customer AS bags,
-                ROUND(SUM(sii.amount) * COALESCE(((SELECT exchange_rate_for_sale_price FROM `tabTowel Costing Sheet` WHERE master_towel_costing = sii.master_towel_costing AND docstatus = 1 ORDER BY creation DESC LIMIT 1)),3),0) AS amount
+                ROUND(SUM(sii.amount) * COALESCE((si.conversion_rate),3),0) AS amount
             FROM 
                 `tabSales Invoice` AS si, `tabSales Invoice Item` AS sii
             WHERE
