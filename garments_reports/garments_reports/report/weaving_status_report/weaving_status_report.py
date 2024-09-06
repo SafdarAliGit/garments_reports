@@ -154,7 +154,7 @@ def get_data(filters):
             soi.received_qty,
             socsi.rm_item_code,
             ROUND(socsi.required_qty,3) AS required_qty,
-            socsi.supplied_qty AS supplied_qty,
+            (socsi.supplied_qty - socsi.qty_return) AS supplied_qty,
             soi.qty_pcs_receipt AS pcs,
             ROUND(socsi.required_qty - socsi.supplied_qty,3) AS balance_to_supplied,
             ROUND(soi.qty - soi.received_qty,3) AS received_balance
