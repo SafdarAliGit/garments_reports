@@ -81,8 +81,22 @@ def get_columns():
             "default": ''
         },
         {
-            "label": _("Send to Supplied "),
+            "label": _("Supplied Qty"),
             "fieldname": "supplied_qty",
+            "fieldtype": "Data",
+            "width": 120,
+            "default": ''
+        },
+        {
+            "label": _("Returned Qty"),
+            "fieldname": "returned_qty",
+            "fieldtype": "Data",
+            "width": 120,
+            "default": ''
+        },
+        {
+            "label": _("Net Qty"),
+            "fieldname": "net_qty",
             "fieldtype": "Data",
             "width": 120,
             "default": ''
@@ -154,9 +168,11 @@ def get_data(filters):
             soi.received_qty,
             socsi.rm_item_code,
             ROUND(socsi.required_qty,3) AS required_qty,
-            (socsi.supplied_qty - socsi.qty_return) AS supplied_qty,
+            socsi.supplied_qty,
+            socsi.returned_qty,
+            ROUND(socsi.supplied_qty - socsi.returned_qty,3) AS net_qty,
             soi.qty_pcs_receipt AS pcs,
-            ROUND(socsi.required_qty - socsi.supplied_qty,3) AS balance_to_supplied,
+            ROUND((socsi.required_qty ) - (socsi.supplied_qty + socsi.returned_qty),3) AS balance_to_supplied,
             ROUND(soi.qty - soi.received_qty,3) AS received_balance
         FROM 
             `tabSubcontracting Order` AS so
