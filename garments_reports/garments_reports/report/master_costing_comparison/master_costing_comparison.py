@@ -88,24 +88,33 @@ def get_data(filters):
     mtc_result = frappe.db.sql(mtc_query, filters, as_dict=1)
 
     srsi_query = """
-            SELECT 
-                sed.item_code AS rm_item_code,
-                ROUND(SUM(sed.qty), 2) AS consumed_qty,
-                ROUND(SUM(sed.qty/100), 0) AS bags,
-                ROUND(SUM(sed.amount), 2) AS amount
-            FROM 
-                `tabStock Entry Detail` AS sed
-            JOIN
-                `tabStock Entry` AS se ON se.name = sed.parent
-            JOIN
-                `tabItem` AS item ON sed.item_code = item.name
-            WHERE
-                item.parent_item_group = 'Yarn'
-                AND se.docstatus = 1 
-                AND {conditions}
-            GROUP BY
-                sed.item_code
-                """.format(conditions=get_conditions(filters, "se"))
+        SELECT 
+            sed.item_code AS rm_item_code,
+            ROUND(SUM(CASE 
+                        WHEN se.is_return = 1 THEN -sed.qty 
+                        ELSE sed.qty 
+                      END), 2) AS consumed_qty,
+            ROUND(SUM(CASE 
+                        WHEN se.is_return = 1 THEN -(sed.qty/100) 
+                        ELSE (sed.qty/100)
+                      END), 0) AS bags,
+            ROUND(SUM(CASE 
+                        WHEN se.is_return = 1 THEN -sed.amount 
+                        ELSE sed.amount 
+                      END), 2) AS amount
+        FROM 
+            `tabStock Entry Detail` AS sed
+        JOIN
+            `tabStock Entry` AS se ON se.name = sed.parent
+        JOIN
+            `tabItem` AS item ON sed.item_code = item.name
+        WHERE
+            item.parent_item_group = 'Yarn'
+            AND se.docstatus = 1 
+            AND {conditions}
+        GROUP BY
+            sed.item_code
+    """.format(conditions=get_conditions(filters, "se"))
 
     srsi_result = frappe.db.sql(srsi_query, filters, as_dict=1)
 
