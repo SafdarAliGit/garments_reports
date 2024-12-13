@@ -145,6 +145,8 @@ def get_conditions(filters, doctype):
         conditions.append(f"socsi.rm_item_code IN (SELECT name FROM `tabItem` WHERE item_group =  %(item_group)s)")
     if filters.get("supplier"):
         conditions.append(f"`{doctype}`.supplier = %(supplier)s")
+    if filters.get("subcontracting_order"):
+        conditions.append(f"`{doctype}`.name = %(subcontracting_order)s")
 
     return " AND ".join(conditions)
 

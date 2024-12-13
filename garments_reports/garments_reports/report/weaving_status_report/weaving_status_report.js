@@ -27,6 +27,12 @@ frappe.query_reports["Weaving Status Report"] = {
             "label": __("Item Group"),
             "fieldtype": "Link",
             "options": "Item Group"
+        },
+        {
+            "fieldname": "subcontracting_order",
+            "label": __("Subcontracting Order"),
+            "fieldtype": "Link",
+            "options": "Subcontracting Order"
         }
     ]
 };
