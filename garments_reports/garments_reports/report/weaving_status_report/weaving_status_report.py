@@ -1,6 +1,7 @@
 # my_custom_app.my_custom_app.report.daily_activity_report.daily_activity_report.py
-import frappe
+
 from frappe import _
+import frappe
 
 
 def execute(filters=None):
@@ -164,7 +165,7 @@ def get_data(filters):
             so.supplier,
             so.master_towel_costing,
             soi.item_code,
-            dp.color,
+            dp.description AS color,
             soi.qty_pcs,
             soi.qty,
             soi.received_qty,
@@ -186,14 +187,14 @@ def get_data(filters):
         LEFT JOIN 
             `tabSubcontracting Receipt Item` AS tsri ON so.name = tsri.subcontracting_order   
         LEFT JOIN 
-            `tabDyeing Program` AS dp ON so.name = dp.parent
+            `tabSubcontracting Order Service Item` AS dp ON so.name = dp.parent
         WHERE 
             {conditions}
             AND so.docstatus = 1
         GROUP BY 
-            so.name,socsi.rm_item_code,so.transaction_date, so.supplier, so.master_towel_costing, dp.color
+            so.name,socsi.rm_item_code,so.transaction_date, so.supplier, so.master_towel_costing, dp.description
         ORDER BY 
-            so.name,soi.item_code,socsi.rm_item_code,so.transaction_date, so.supplier, so.master_towel_costing, dp.color
+            so.name,soi.item_code,socsi.rm_item_code,so.transaction_date, so.supplier, so.master_towel_costing, dp.description
     """.format(conditions=get_conditions(filters, "so"))
 
 
