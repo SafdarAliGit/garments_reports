@@ -178,10 +178,10 @@ def get_data(filters):
             ROUND((socsi.required_qty ) - (socsi.supplied_qty + socsi.returned_qty),3) AS balance_to_supplied,
             ROUND(soi.qty - soi.received_qty,3) AS received_balance
         FROM 
-            `tabSubcontracting Order` AS so
+            `tabSubcontracting Order Item` AS soi
         
-         JOIN 
-            `tabSubcontracting Order Item` AS soi ON so.name = soi.parent
+         LEFT JOIN 
+            `tabSubcontracting Order` AS so ON so.name = soi.parent
         LEFT JOIN 
             `tabSubcontracting Order Supplied Item` AS socsi ON so.name = socsi.parent
         LEFT JOIN 
@@ -191,26 +191,22 @@ def get_data(filters):
         WHERE 
             {conditions}
             AND so.docstatus = 1
-        GROUP BY 
-            so.name,socsi.rm_item_code,so.transaction_date, so.supplier, so.master_towel_costing, dp.description
-        ORDER BY 
-            so.name,soi.item_code,socsi.rm_item_code,so.transaction_date, so.supplier, so.master_towel_costing, dp.description
     """.format(conditions=get_conditions(filters, "so"))
 
 
     sco_result = frappe.db.sql(sco_entry, filters, as_dict=1)
     # TO REMOVE DUPLICATES
-    keys_to_check = ['name', 'transaction_date', 'supplier', 'item_code','qty_pcs', 'received_qty','master_towel_costing','pcs','received_balance']
-    seen_values = []
+    # keys_to_check = ['name', 'transaction_date', 'supplier', 'item_code','qty_pcs', 'received_qty','master_towel_costing','pcs','received_balance']
+    # seen_values = []
 
-    for entry in sco_result:
-        key_values = tuple(entry[key] for key in keys_to_check)
+    # for entry in sco_result:
+    #     key_values = tuple(entry[key] for key in keys_to_check)
 
-        if key_values in seen_values:
-            for key in keys_to_check:
-                entry[key] = None
-        else:
-            seen_values.append(key_values)
+    #     if key_values in seen_values:
+    #         for key in keys_to_check:
+    #             entry[key] = None
+    #     else:
+    #         seen_values.append(key_values)
 
     # END
     data.extend(sco_result)
