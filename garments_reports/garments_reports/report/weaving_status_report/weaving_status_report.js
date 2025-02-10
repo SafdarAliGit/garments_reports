@@ -4,7 +4,7 @@ frappe.query_reports["Weaving Status Report"] = {
             "fieldname": "subcontracting_for",
             "label": __("Subcontracting For"),
             "fieldtype": "Select",
-            "options": ["Weaving Charges", "Dyeing"],
+            "options": ["Weaving Charges","Dyeing Charges","Stitching Charges","Packing Charges"],
             "default": "Weaving Charges"
             // "reqd": 1
 
