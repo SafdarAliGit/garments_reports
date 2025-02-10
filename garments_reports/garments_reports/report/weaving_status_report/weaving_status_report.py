@@ -180,13 +180,13 @@ def get_data(filters):
         FROM 
             `tabSubcontracting Order Item` AS soi
         
-         LEFT JOIN 
+         INNER JOIN 
             `tabSubcontracting Order` AS so ON so.name = soi.parent
-        LEFT JOIN 
+        INNER JOIN 
             `tabSubcontracting Order Supplied Item` AS socsi ON so.name = socsi.parent
-        LEFT JOIN 
+        INNER JOIN 
             `tabSubcontracting Receipt Item` AS tsri ON so.name = tsri.subcontracting_order   
-        LEFT JOIN 
+        INNER JOIN 
             `tabSubcontracting Order Service Item` AS dp ON so.name = dp.parent
         WHERE 
             {conditions}
